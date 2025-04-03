@@ -116,7 +116,7 @@
             }
     
             function downloadSrtFile(srtContent, originalFileName) {
-                const blob = new Blob([srtContent], { type: 'text/srt' });
+                const blob = new Blob([srtContent], { type: 'text/srt; charset=utf-8' }); // Specify UTF-8 encoding
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
