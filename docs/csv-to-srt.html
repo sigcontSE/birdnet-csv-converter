@@ -26,6 +26,8 @@
     <main class="container">
         <h1>BirdNET CSV to SRT Converter</h1>
         <input type="file" id="fileInput" accept=".csv">
+        <label for="prefixInput">Prefix (default: Hearing):</label>
+        <input type="text" id="prefixInput" value="Hearing:">
         <button id="convertButton">Convert</button>
         <h2>SRT Output</h2>
         <textarea id="output" readonly></textarea>
@@ -36,6 +38,7 @@
                 const fileInput = document.getElementById('fileInput');
                 const output = document.getElementById('output');
                 const downloadButton = document.getElementById('downloadButton');
+                const prefixInput = document.getElementById('prefixInput');
     
                 if (fileInput.files.length === 0) {
                     alert('Please upload a CSV file.');
@@ -47,7 +50,7 @@
     
                 reader.onload = function(event) {
                     const csvData = event.target.result;
-                    const srtContent = convertCsvToSrt(csvData, file.name);
+                    const srtContent = convertCsvToSrt(csvData, file.name, prefixInput.value);
                     output.value = srtContent;
                     downloadButton.style.display = 'block';
                     downloadButton.onclick = function() {
