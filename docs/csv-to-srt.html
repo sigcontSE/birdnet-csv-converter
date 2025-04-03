@@ -59,31 +59,34 @@
             });
     
             function convertCsvToSrt(csvData, originalFileName) {
-                const lines = csvData.trim().split('\n').slice(1); // Skip header
-                const entries = [];
-                let lastCommonName = '';
-                let lastScientificName = '';
-                let lastEndTime = 0;
-    
-                lines.forEach(line => {
                     const [start, end, scientificName, commonName] = line.split(',').map(item => item.trim());
                     const startTime = parseFloat(start);
                     const endTime = parseFloat(end);
-    
-                    if (commonName === lastCommonName) {
-                        lastEndTime = Math.max(lastEndTime, endTime);
+                    const duration = endTime - startTime;
+            
+                    // If the duration exceeds 6 seconds, only include the first segment
+                    if (duration > 6) {
+                        entries.push({
+                            start: formatTime(startTime),
+                            end: formatTime(startTime + 6), // End at 6 seconds from start
+                            text: `${prefix} ${commonName} (${scientificName})`
+                        });
                     } else {
-                        if (lastCommonName) {
-                            entries.push({
-                                start: formatTime(lastStartTime),
-                                end: formatTime(lastEndTime),
-                                text: `👂 ${lastCommonName} (${lastScientificName})`
-                            });
+                        if (commonName === lastCommonName) {
+                            lastEndTime = Math.max(lastEndTime, endTime);
+                        } else {
+                            if (lastCommonName) {
+                                entries.push({
+                                    start: formatTime(lastStartTime),
+                                    end: formatTime(lastEndTime),
+                                    text: `${prefix} ${lastCommonName} (${lastScientificName})`
+                                });
+                            }
+                            lastCommonName = commonName;
+                            lastScientificName = scientificName;
+                            lastStartTime = startTime;
+                            lastEndTime = endTime;
                         }
-                        lastCommonName = commonName;
-                        lastScientificName = scientificName;
-                        lastStartTime = startTime;
-                        lastEndTime = endTime;
                     }
                 });
     
@@ -92,7 +95,7 @@
                     entries.push({
                         start: formatTime(lastStartTime),
                         end: formatTime(lastEndTime),
-                        text: `👂 ${lastCommonName} (${lastScientificName})`
+                        text: `Hearing: ${lastCommonName} (${lastScientificName})`
                     });
                 }
     
