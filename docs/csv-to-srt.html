@@ -58,7 +58,15 @@
                 reader.readAsText(file);
             });
     
-            function convertCsvToSrt(csvData, originalFileName) {
+            function convertCsvToSrt(csvData, originalFileName, prefix) {
+                const lines = csvData.trim().split('\n').slice(1); // Skip header
+                const entries = [];
+                let lastCommonName = '';
+                let lastScientificName = '';
+                let lastEndTime = 0;
+                let lastStartTime = 0;
+            
+                lines.forEach(line => {
                     const [start, end, scientificName, commonName] = line.split(',').map(item => item.trim());
                     const startTime = parseFloat(start);
                     const endTime = parseFloat(end);
@@ -89,21 +97,22 @@
                         }
                     }
                 });
-    
+            
                 // Push the last entry
                 if (lastCommonName) {
                     entries.push({
                         start: formatTime(lastStartTime),
                         end: formatTime(lastEndTime),
-                        text: `Hearing: ${lastCommonName} (${lastScientificName})`
+                        text: `${prefix} ${lastCommonName} (${lastScientificName})`
                     });
                 }
-    
+            
                 // Format SRT content
                 return entries.map((entry, index) => {
                     return `${index + 1}\n${entry.start} --> ${entry.end}\n${entry.text}\n`;
                 }).join('\n');
             }
+
     
             function formatTime(seconds) {
                 const date = new Date(0);
