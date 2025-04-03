@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSV to SRT Converter</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css" >
+    <title>BirdNET CSV to SRT Converter</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -16,101 +18,103 @@
     </style>
 </head>
 <body>
-    <h1>CSV to SRT Converter</h1>
-    <input type="file" id="fileInput" accept=".csv">
-    <button id="convertButton">Convert</button>
-    <h2>SRT Output</h2>
-    <textarea id="output" readonly></textarea>
-    <button id="downloadButton" style="display:none;">Download SRT</button>
-
-    <script>
-        document.getElementById('convertButton').addEventListener('click', function() {
-            const fileInput = document.getElementById('fileInput');
-            const output = document.getElementById('output');
-            const downloadButton = document.getElementById('downloadButton');
-
-            if (fileInput.files.length === 0) {
-                alert('Please upload a CSV file.');
-                return;
-            }
-
-            const file = fileInput.files[0];
-            const reader = new FileReader();
-
-            reader.onload = function(event) {
-                const csvData = event.target.result;
-                const srtContent = convertCsvToSrt(csvData, file.name);
-                output.value = srtContent;
-                downloadButton.style.display = 'block';
-                downloadButton.onclick = function() {
-                    downloadSrtFile(srtContent, file.name);
-                };
-            };
-
-            reader.readAsText(file);
-        });
-
-        function convertCsvToSrt(csvData, originalFileName) {
-            const lines = csvData.trim().split('\n').slice(1); // Skip header
-            const entries = [];
-            let lastCommonName = '';
-            let lastScientificName = '';
-            let lastEndTime = 0;
-
-            lines.forEach(line => {
-                const [start, end, scientificName, commonName] = line.split(',').map(item => item.trim());
-                const startTime = parseFloat(start);
-                const endTime = parseFloat(end);
-
-                if (commonName === lastCommonName) {
-                    lastEndTime = Math.max(lastEndTime, endTime);
-                } else {
-                    if (lastCommonName) {
-                        entries.push({
-                            start: formatTime(lastStartTime),
-                            end: formatTime(lastEndTime),
-                            text: `${lastCommonName} (${lastScientificName})`
-                        });
-                    }
-                    lastCommonName = commonName;
-                    lastScientificName = scientificName;
-                    lastStartTime = startTime;
-                    lastEndTime = endTime;
+    <main class="container">
+        <h1>BirdNET CSV to SRT Converter</h1>
+        <input type="file" id="fileInput" accept=".csv">
+        <button id="convertButton">Convert</button>
+        <h2>SRT Output</h2>
+        <textarea id="output" readonly></textarea>
+        <button id="downloadButton" style="display:none;">Download SRT</button>
+    
+        <script>
+            document.getElementById('convertButton').addEventListener('click', function() {
+                const fileInput = document.getElementById('fileInput');
+                const output = document.getElementById('output');
+                const downloadButton = document.getElementById('downloadButton');
+    
+                if (fileInput.files.length === 0) {
+                    alert('Please upload a CSV file.');
+                    return;
                 }
+    
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+    
+                reader.onload = function(event) {
+                    const csvData = event.target.result;
+                    const srtContent = convertCsvToSrt(csvData, file.name);
+                    output.value = srtContent;
+                    downloadButton.style.display = 'block';
+                    downloadButton.onclick = function() {
+                        downloadSrtFile(srtContent, file.name);
+                    };
+                };
+    
+                reader.readAsText(file);
             });
-
-            // Push the last entry
-            if (lastCommonName) {
-                entries.push({
-                    start: formatTime(lastStartTime),
-                    end: formatTime(lastEndTime),
-                    text: `${lastCommonName} (${lastScientificName})`
+    
+            function convertCsvToSrt(csvData, originalFileName) {
+                const lines = csvData.trim().split('\n').slice(1); // Skip header
+                const entries = [];
+                let lastCommonName = '';
+                let lastScientificName = '';
+                let lastEndTime = 0;
+    
+                lines.forEach(line => {
+                    const [start, end, scientificName, commonName] = line.split(',').map(item => item.trim());
+                    const startTime = parseFloat(start);
+                    const endTime = parseFloat(end);
+    
+                    if (commonName === lastCommonName) {
+                        lastEndTime = Math.max(lastEndTime, endTime);
+                    } else {
+                        if (lastCommonName) {
+                            entries.push({
+                                start: formatTime(lastStartTime),
+                                end: formatTime(lastEndTime),
+                                text: `👂 ${lastCommonName} (${lastScientificName})`
+                            });
+                        }
+                        lastCommonName = commonName;
+                        lastScientificName = scientificName;
+                        lastStartTime = startTime;
+                        lastEndTime = endTime;
+                    }
                 });
+    
+                // Push the last entry
+                if (lastCommonName) {
+                    entries.push({
+                        start: formatTime(lastStartTime),
+                        end: formatTime(lastEndTime),
+                        text: `${lastCommonName} (${lastScientificName})`
+                    });
+                }
+    
+                // Format SRT content
+                return entries.map((entry, index) => {
+                    return `${index + 1}\n${entry.start} --> ${entry.end}\n${entry.text}\n`;
+                }).join('\n');
             }
-
-            // Format SRT content
-            return entries.map((entry, index) => {
-                return `${index + 1}\n${entry.start} --> ${entry.end}\n${entry.text}\n`;
-            }).join('\n');
-        }
-
-        function formatTime(seconds) {
-            const date = new Date(0);
-            date.setSeconds(seconds);
-            return date.toISOString().substr(11, 8).replace('.', ',');
-        }
-
-        function downloadSrtFile(srtContent, originalFileName) {
-            const blob = new Blob([srtContent], { type: 'text/srt' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = originalFileName.replace(/\.csv$/, '.srt');
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-    </script>
+    
+            function formatTime(seconds) {
+                const date = new Date(0);
+                date.setSeconds(seconds);
+                return date.toISOString().substr(11, 8).replace('.', ',');
+            }
+    
+            function downloadSrtFile(srtContent, originalFileName) {
+                const blob = new Blob([srtContent], { type: 'text/srt' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = originalFileName.replace(/\.csv$/, '.srt');
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        </script>
+    </main>
 </body>
 </html>
