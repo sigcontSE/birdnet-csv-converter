@@ -7,10 +7,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css" >
     <title>BirdNET CSV to SRT Converter</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
         textarea {
             width: 100%;
             height: 300px;
@@ -21,9 +17,11 @@
     <main class="container">
         <h1>BirdNET CSV to SRT Converter</h1>
         <input type="file" id="fileInput" accept=".csv">
+        <label for="prefixInput">Prefix (default: 👂):</label>
+        <input type="text" id="prefixInput" value="👂">
         <button id="convertButton">Convert</button>
         <h2>SRT Output</h2>
-        <textarea id="output" readonly></textarea>
+        <pre><code id="output"></code></pre>
         <button id="downloadButton" style="display:none;">Download SRT</button>
     
         <script>
@@ -72,7 +70,7 @@
                             entries.push({
                                 start: formatTime(lastStartTime),
                                 end: formatTime(lastEndTime),
-                                text: `👂 ${lastCommonName} (${lastScientificName})`
+                                text: `${prefix} ${lastCommonName} (${lastScientificName})`
                             });
                         }
                         lastCommonName = commonName;
@@ -87,7 +85,7 @@
                     entries.push({
                         start: formatTime(lastStartTime),
                         end: formatTime(lastEndTime),
-                        text: `👂 ${lastCommonName} (${lastScientificName})`
+                        text: `${prefix} ${lastCommonName} (${lastScientificName})`
                     });
                 }
     
