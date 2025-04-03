@@ -105,7 +105,14 @@
             function formatTime(seconds) {
                 const date = new Date(0);
                 date.setSeconds(seconds);
-                return date.toISOString().substr(11, 8).replace('.', ',');
+                
+                // Get hours, minutes, seconds, and milliseconds
+                const hours = String(date.getUTCHours()).padStart(2, '0');
+                const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+                const secs = String(date.getUTCSeconds()).padStart(2, '0');
+                const millis = String(date.getUTCMilliseconds()).padStart(3, '0');
+            
+                return `${hours}:${minutes}:${secs},${millis}`; // Format as HH:MM:SS,mmm
             }
     
             function downloadSrtFile(srtContent, originalFileName) {
